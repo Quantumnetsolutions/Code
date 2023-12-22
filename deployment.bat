@@ -1,13 +1,42 @@
-
-
 # Script Name:                          deployment.bat
 # Author Name:                          Tianna Farrow
-# Date of latest revision:              12/19/2023
+# Date of latest revision:              12/21/2023
 # Purpose:                              A script that automates the deployment of a Windows Server (Virutal Machine). 
 # Execution:                            add it as a .ps1 file on the server or copy code into powershell as 
-# Additional Resources:                 https://pypi.org/project/pywinrm/; https://www.phillipsj.net/posts/executing-powershell-from-python/; https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/rename-computer?view=powershell-7.4; https://learn.microsoft.com/en-us/powershell/module/nettcpip/new-netipaddress?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/dnsclient/set-dnsclientserveraddress?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/servermanager/install-windowsfeature?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/addsdeployment/install-addsforest?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-adorganizationalunit?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-aduser?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1;   
+# Additional Resources:                 https://pypi.org/project/pywinrm/; https://www.phillipsj.net/posts/executing-powershell-from-python/;  https://docs.microsoft.com/en-us/powershell/module/servermanager/uninstall-windowsfeature; https://docs.microsoft.com/en-us/powershell/module/netadapter/disable-netadapter; https://docs.microsoft.com/en-us/powershell/module/dnsclient/clear-dnsclientserveraddress;https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/rename-computer; https://docs.microsoft.com/en-us/powershell/module/addsadministration/remove-adorganizationalunit; https://docs.microsoft.com/en-us/powershell/module/addsadministration/remove-aduser;  https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/rename-computer?view=powershell-7.4; https://learn.microsoft.com/en-us/powershell/module/nettcpip/new-netipaddress?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/dnsclient/set-dnsclientserveraddress?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/servermanager/install-windowsfeature?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/addsdeployment/install-addsforest?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-adorganizationalunit?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-aduser?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1;   
 
 
+# Clear Existing Configurations
+Write-Host "Clearing existing configurations..."
+
+# Backup important data if needed
+
+# Remove Roles and Features
+Get-WindowsFeature | Where-Object { $_.Installed } | Uninstall-WindowsFeature -Remove
+
+# Remove AD Domain Services
+Uninstall-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
+
+# Remove DNS Server Role
+Uninstall-WindowsFeature -Name DNS -IncludeManagementTools
+
+# Clear Network Configuration
+Write-Host "Clearing network configuration..."
+Get-NetAdapter | Disable-NetAdapter
+Get-NetAdapter | Clear-DnsClientServerAddress
+
+# Reset Computer Name
+Write-Host "Resetting computer name..."
+Rename-Computer -NewName "TEMP" -Restart
+
+# Remove Organizational Units (OUs) and Users
+Write-Host "Removing OUs and users..."
+Get-ADOrganizationalUnit -Filter { Name -eq "Executive Team" } | Remove-ADOrganizationalUnit -Recursive
+Get-ADUser -Filter * | Remove-ADUser -Confirm:$false
+
+# Reset DNS Configuration
+Write-Host "Resetting DNS configuration..."
+Set-DnsClientServerAddress -InterfaceAlias Ethernet -ResetServerAddresses
 
 # Rename Windows Server VM 
 Rename-Computer -NewName "TarantinoTechServer" -Restart 
@@ -68,6 +97,8 @@ New-AdUser -SamAccountName "GogoYubari" -UserPrincipalName "GogoYubari@tarantino
 $DnsServer = Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object { $_.DNSServerSearchOrder -eq $null }
 $DnsServer.SetDNSServerSearchOrder(@($DNS))
 
+# End Script 
+Write-Host "Script complete!"
 
 # Notes to self 
 # Can set using Set-ExecutionPolicy Unrestricted -Force. 

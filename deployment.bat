@@ -4,13 +4,13 @@
 # Author Name:                          Tianna Farrow
 # Date of latest revision:              12/19/2023
 # Purpose:                              A script that automates the deployment of a Windows Server (Virutal Machine). 
-# Execution:                            
-# Additional Resources:                 https://pypi.org/project/pywinrm/; https://www.phillipsj.net/posts/executing-powershell-from-python/; 
-# Notes:                                Make sure pip install pywinrm is installed to utilize.
+# Execution:                            add it as a .ps1 file on the server or copy code into powershell as 
+# Additional Resources:                 https://pypi.org/project/pywinrm/; https://www.phillipsj.net/posts/executing-powershell-from-python/; https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/rename-computer?view=powershell-7.4; https://learn.microsoft.com/en-us/powershell/module/nettcpip/new-netipaddress?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/dnsclient/set-dnsclientserveraddress?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/servermanager/install-windowsfeature?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/addsdeployment/install-addsforest?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-adorganizationalunit?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/activedirectory/new-aduser?view=windowsserver2022-ps; https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject?view=powershell-5.1;   
+
 
 
 # Rename Windows Server VM 
-Rename-Computer -NewName "TarantinoTech Server" -Restart 
+Rename-Computer -NewName "TarantinoTechServer" -Restart 
 
 # Assign a Static IPv4 Address and DNS 
 # Variables 
@@ -30,6 +30,7 @@ Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 # Variable 
 
 $DomainName = "tarantinotech.com"
+$NetBiosDomainName = "TARANTINOTECH"
 $SafeModeAdministratorPassword = ConvertTo-SecureString -String "PulpFiction" -AsPlainText -Force
 
 Install-ADDSForest -DomainName $DomainName -SafeModeAdministratorPassword $SafeModeAdministratorPassword -Force:$true -InstallDns:$true -DomainNetbiosName "TARANTINOTECH"
@@ -70,3 +71,4 @@ $DnsServer.SetDNSServerSearchOrder(@($DNS))
 
 # Notes to self 
 # Can set using Set-ExecutionPolicy Unrestricted -Force. 
+# There are some python resources
